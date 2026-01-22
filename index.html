@@ -1,114 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Simu Tama V1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simu Tamagotchi V1</title>
+
 <style>
-    body { font-family: sans-serif; padding: 20px; background: #fafafa; }
-    button { margin: 5px; padding: 10px; font-size: 16px; }
-    .status { margin-top: 20px; font-family: monospace; }
+    body {
+        background: #e6e6e6;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        text-align: center;
+        padding: 20px;
+    }
+
+    h1 {
+        margin-bottom: 10px;
+    }
+
+    #screen {
+        width: 320px;
+        height: 160px;
+        background: #cfd8c3;
+        border: 6px solid #333;
+        margin: 20px auto;
+        image-rendering: pixelated;
+    }
+
+    .buttons {
+        margin-top: 15px;
+    }
+
+    button {
+        font-size: 16px;
+        padding: 10px 18px;
+        margin: 0 5px;
+    }
+
+    #debug {
+        text-align: left;
+        max-width: 320px;
+        margin: 20px auto;
+        background: #fff;
+        padding: 10px;
+        font-family: monospace;
+        font-size: 14px;
+        border: 1px solid #ccc;
+    }
 </style>
 </head>
+
 <body>
 
 <h1>Simu Tamagotchi V1</h1>
 
-<div>
-    <button onclick="feedMeal()">Feed Meal</button>
-    <button onclick="feedSnack()">Feed Snack</button>
-    <button onclick="playGame()">Play</button>
-    <button onclick="cleanPoop()">Clean Poop</button>
-    <button onclick="giveMedicine()">Medicine</button>
-    <button onclick="disciplinePet()">Discipline</button>
+<!-- LCD PLACEHOLDER -->
+<canvas id="screen" width="32" height="16"></canvas>
+
+<!-- TEMP BUTTONS (DEBUG ONLY) -->
+<div class="buttons">
+    <button onclick="tick(1)">+1 min</button>
+    <button onclick="tick(30)">+30 min</button>
+    <button onclick="feed()">Feed</button>
+    <button onclick="play()">Play</button>
 </div>
 
-<div style="margin-top:20px;">
-    Advance time:
-    <button onclick="tick(1)">1 min</button>
-    <button onclick="tick(10)">10 min</button>
-    <button onclick="tick(60)">1 hr</button>
-</div>
+<!-- DEBUG OUTPUT -->
+<pre id="debug">Loading...</pre>
 
-<div class="status" id="status"></div>
+<script type="module">
+import { TamaV1 } from "./core/tama-core.js";
 
-<script>
-    // Simulation state
-    var age = 0;
-    var stage = "EGG";
-    var hunger = 4;
-    var happiness = 4;
-    var discipline = 50;
-    var mistakes = 0;
-    var poop = 0;
-    var sick = false;
+const tama = new TamaV1(0);
+const debug = document.getElementById("debug");
 
-    function updateStage() {
-        if (age >= 5 && stage === "EGG") stage = "BABY";
-        if (age >= 60 && stage === "BABY") stage = "CHILD";
-        if (age >= 1440 && stage === "CHILD") stage = "TEEN";
-        if (age >= 2880 && stage === "TEEN") stage = "ADULT";
-    }
+function renderDebug() {
+    const s = tama.snapshot();
+    debug.textContent =
+`Stage        : ${s.stage}
+Age (min)    : ${s.ageMinutes}
+Hunger       : ${s.hunger}
+Happiness    : ${s.happiness}
+Discipline   : ${s.discipline}
+CareMistakes : ${s.careMistakes}
+Poop         : ${s.poopCount}
+Sick         : ${s.isSick}
+Attention    : ${s.attentionFlag}
+Dead         : ${s.isDead}`;
+}
 
-    function updateStatus() {
-        document.getElementById("status").innerText =
-            "Stage: " + stage + "\n" +
-            "Age: " + age + " min\n" +
-            "Hunger: " + hunger + "\n" +
-            "Happiness: " + happiness + "\n" +
-            "Discipline: " + discipline + "\n" +
-            "Poop: " + poop + "\n" +
-            "Sick: " + sick + "\n" +
-            "Mistakes: " + mistakes;
-    }
+window.tick = function(min) {
+    tama.tick(min);
+    renderDebug();
+};
 
-    function tick(mins) {
-        for (var i=0; i<mins; i++) {
-            age++;
-            updateStage();
-            if (age % 30 === 0) {
-                hunger = Math.max(0, hunger - 1);
-                happiness = Math.max(0, happiness - 1);
-                poop++;
-            }
-            if ((hunger === 0 || happiness === 0) && !sick) sick = true;
-        }
-        updateStatus();
-    }
+window.feed = function() {
+    tama.feedMeal();
+    renderDebug();
+};
 
-    function feedMeal() {
-        hunger = Math.min(4, hunger + 1);
-        poop++;
-        updateStatus();
-    }
+window.play = function() {
+    tama.playGame();
+    renderDebug();
+};
 
-    function feedSnack() {
-        happiness = Math.min(4, happiness + 1);
-        discipline = Math.max(0, discipline - 2);
-        updateStatus();
-    }
-
-    function playGame() {
-        happiness = Math.min(4, happiness + 1);
-        updateStatus();
-    }
-
-    function cleanPoop() {
-        poop = 0;
-        updateStatus();
-    }
-
-    function giveMedicine() {
-        if (sick) sick = false;
-        updateStatus();
-    }
-
-    function disciplinePet() {
-        discipline = Math.min(100, discipline + 10);
-        updateStatus();
-    }
-
-    // initial
-    updateStatus();
+// Initial render
+renderDebug();
 </script>
 
 </body>
