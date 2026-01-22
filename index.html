@@ -69,43 +69,30 @@
 
 <script type="module">
 import { TamaV1 } from "./core/tama-core.js";
+import { LCD } from "./ui/lcd.js";
+import { SPRITES } from "./ui/sprites-v1.js";
 
 const tama = new TamaV1(0);
-const debug = document.getElementById("debug");
+const lcd = new LCD("screen", 10);
 
-function renderDebug() {
-    const s = tama.snapshot();
-    debug.textContent =
-`Stage        : ${s.stage}
-Age (min)    : ${s.ageMinutes}
-Hunger       : ${s.hunger}
-Happiness    : ${s.happiness}
-Discipline   : ${s.discipline}
-CareMistakes : ${s.careMistakes}
-Poop         : ${s.poopCount}
-Sick         : ${s.isSick}
-Attention    : ${s.attentionFlag}
-Dead         : ${s.isDead}`;
+function render() {
+  lcd.clear();
+
+  if (tama.stage === "EGG") {
+    lcd.sprite(14, 6, SPRITES.EGG);
+  } else if (tama.stage === "BABY") {
+    lcd.sprite(14, 6, SPRITES.BABY);
+  }
+
+  document.getElementById("debug").textContent =
+    JSON.stringify(tama.snapshot(), null, 2);
 }
 
-window.tick = function(min) {
-    tama.tick(min);
-    renderDebug();
-};
+window.tick = (m) => { tama.tick(m); render(); };
+window.feed = () => { tama.feedMeal(); render(); };
+window.play = () => { tama.playGame(); render(); };
 
-window.feed = function() {
-    tama.feedMeal();
-    renderDebug();
-};
-
-window.play = function() {
-    tama.playGame();
-    renderDebug();
-};
-
-// Initial render
-renderDebug();
+render();
 </script>
-
 </body>
 </html>
