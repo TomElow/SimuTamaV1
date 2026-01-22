@@ -14,10 +14,10 @@ body {
 }
 
 h1 {
-    margin-bottom: 15px;
+    margin-bottom: 18px;
 }
 
-/* Tamagotchi LCD frame */
+/* Frame like Tamagotchi shell */
 #frame {
     display: inline-block;
     padding: 14px;
@@ -32,17 +32,17 @@ h1 {
 
 /* Buttons A B C */
 .buttons {
-    margin-top: 25px;
+    margin-top: 28px;
 }
 
 .buttons button {
-    font-size: 18px;
     width: 60px;
-    height: 40px;
-    margin: 0 8px;
-    border-radius: 20px;
+    height: 42px;
+    margin: 0 10px;
+    border-radius: 22px;
     border: none;
     background: #ddd;
+    font-size: 18px;
     font-weight: bold;
 }
 </style>
@@ -69,23 +69,28 @@ import { TamaV1 } from "./core/tama-core.js";
 import { LCD } from "./ui/lcd.js";
 import { SPRITES } from "./ui/sprites-v1.js";
 import { Menu } from "./ui/menu.js";
+import { ICONS } from "./ui/icons-v1.js";
 
-/* Init core & UI */
+/* Init core + UI */
 const tama = new TamaV1(0);
 const lcd = new LCD("screen", 10);
 const menu = new Menu();
 
-/* Render */
+/* Render LCD */
 function render() {
     lcd.clear();
 
-    /* Draw Tamagotchi */
+    /* Draw Tamagotchi (centered) */
     if (tama.stage === "EGG") {
         lcd.sprite(14, 6, SPRITES.EGG);
-    } else if (tama.stage === "BABY") {
+    } else {
         lcd.sprite(14, 6, SPRITES.BABY);
-    } else if (tama.stage === "CHILD") {
-        lcd.sprite(14, 6, SPRITES.BABY); // placeholder
+    }
+
+    /* Draw menu icon (top-right, like V1) */
+    const icon = menu.current();
+    if (ICONS[icon]) {
+        lcd.sprite(23, 1, ICONS[icon]);
     }
 }
 
@@ -105,13 +110,13 @@ window.pressC = () => {
     render();
 };
 
-/* Real-time clock (1 min = 1 tick) */
+/* Real-time clock: 1 minute = 1 tick */
 setInterval(() => {
     tama.tick(1);
     render();
 }, 60000);
 
-/* First draw */
+/* Initial render */
 render();
 </script>
 
