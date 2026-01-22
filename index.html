@@ -1,150 +1,115 @@
-import java.util.Random;
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Simu Tama V1</title>
+<style>
+    body { font-family: sans-serif; padding: 20px; background: #fafafa; }
+    button { margin: 5px; padding: 10px; font-size: 16px; }
+    .status { margin-top: 20px; font-family: monospace; }
+</style>
+</head>
+<body>
 
-public class TamagotchiV1 {
+<h1>Simu Tamagotchi V1</h1>
 
-    enum Stage {
-        EGG, BABY, CHILD, TEEN, ADULT, DEAD
+<div>
+    <button onclick="feedMeal()">Feed Meal</button>
+    <button onclick="feedSnack()">Feed Snack</button>
+    <button onclick="playGame()">Play</button>
+    <button onclick="cleanPoop()">Clean Poop</button>
+    <button onclick="giveMedicine()">Medicine</button>
+    <button onclick="disciplinePet()">Discipline</button>
+</div>
+
+<div style="margin-top:20px;">
+    Advance time:
+    <button onclick="tick(1)">1 min</button>
+    <button onclick="tick(10)">10 min</button>
+    <button onclick="tick(60)">1 hr</button>
+</div>
+
+<div class="status" id="status"></div>
+
+<script>
+    // Simulation state
+    var age = 0;
+    var stage = "EGG";
+    var hunger = 4;
+    var happiness = 4;
+    var discipline = 50;
+    var mistakes = 0;
+    var poop = 0;
+    var sick = false;
+
+    function updateStage() {
+        if (age >= 5 && stage === "EGG") stage = "BABY";
+        if (age >= 60 && stage === "BABY") stage = "CHILD";
+        if (age >= 1440 && stage === "CHILD") stage = "TEEN";
+        if (age >= 2880 && stage === "TEEN") stage = "ADULT";
     }
 
-    private Stage stage = Stage.EGG;
-    private int ageMinutes = 0;
-
-    private int hunger = 4;       // 0 (affamé) -> 4 (plein)
-    private int happiness = 4;    // 0 -> 4
-    private int discipline = 50;  // 0 -> 100
-    private int careMistakes = 0;
-    private int poopCount = 0;
-
-    private boolean isSick = false;
-    private boolean isSleeping = false;
-    private boolean attentionCall = false;
-
-    /* ===== TEMPS ===== */
-
-    public void tick() {
-        if (stage == Stage.DEAD) return;
-
-        ageMinutes++;
-
-        // Évolution
-        updateStage();
-
-        // Dégradation naturelle toutes les 30 minutes
-        if (ageMinutes % 30 == 0) {
-            hunger = Math.max(0, hunger - 1);
-            happiness = Math.max(0, happiness - 1);
-            poopCount++;
-        }
-
-        // Appel si besoin
-        if ((hunger == 0 || happiness == 0) && !attentionCall) {
-            attentionCall = true;
-        }
-
-        // Care mistake après 15 minutes d'appel ignoré
-        if (attentionCall && ageMinutes % 15 == 0) {
-            careMistakes++;
-            discipline = Math.max(0, discipline - 5);
-            attentionCall = false;
-        }
-
-        // Maladie
-        if (poopCount >= 4 || hunger == 0) {
-            isSick = true;
-        }
-
-        // Mort
-        if (careMistakes >= 10 || (isSick && hunger == 0)) {
-            stage = Stage.DEAD;
-            System.out.println("💀 Tamagotchi est mort.");
-        }
+    function updateStatus() {
+        document.getElementById("status").innerText =
+            "Stage: " + stage + "\n" +
+            "Age: " + age + " min\n" +
+            "Hunger: " + hunger + "\n" +
+            "Happiness: " + happiness + "\n" +
+            "Discipline: " + discipline + "\n" +
+            "Poop: " + poop + "\n" +
+            "Sick: " + sick + "\n" +
+            "Mistakes: " + mistakes;
     }
 
-    /* ===== ACTIONS ===== */
+    function tick(mins) {
+        for (var i=0; i<mins; i++) {
+            age++;
+            updateStage();
+            if (age % 30 === 0) {
+                hunger = Math.max(0, hunger - 1);
+                happiness = Math.max(0, happiness - 1);
+                poop++;
+            }
+            if ((hunger === 0 || happiness === 0) && !sick) sick = true;
+        }
+        updateStatus();
+    }
 
-    public void feedMeal() {
+    function feedMeal() {
         hunger = Math.min(4, hunger + 1);
-        poopCount++;
-        attentionCall = false;
+        poop++;
+        updateStatus();
     }
 
-    public void feedSnack() {
+    function feedSnack() {
         happiness = Math.min(4, happiness + 1);
         discipline = Math.max(0, discipline - 2);
-        attentionCall = false;
+        updateStatus();
     }
 
-    public void playGame() {
+    function playGame() {
         happiness = Math.min(4, happiness + 1);
-        attentionCall = false;
+        updateStatus();
     }
 
-    public void cleanPoop() {
-        poopCount = 0;
+    function cleanPoop() {
+        poop = 0;
+        updateStatus();
     }
 
-    public void giveMedicine() {
-        if (isSick) {
-            isSick = false;
-        }
+    function giveMedicine() {
+        if (sick) sick = false;
+        updateStatus();
     }
 
-    public void discipline() {
-        if (attentionCall) {
-            discipline = Math.min(100, discipline + 10);
-            attentionCall = false;
-        }
+    function disciplinePet() {
+        discipline = Math.min(100, discipline + 10);
+        updateStatus();
     }
 
-    public void toggleLight() {
-        isSleeping = !isSleeping;
-    }
+    // initial
+    updateStatus();
+</script>
 
-    /* ===== ÉVOLUTION ===== */
-
-    private void updateStage() {
-        if (stage == Stage.EGG && ageMinutes >= 5) {
-            stage = Stage.BABY;
-        } else if (stage == Stage.BABY && ageMinutes >= 60) {
-            stage = Stage.CHILD;
-        } else if (stage == Stage.CHILD && ageMinutes >= 1440) {
-            stage = Stage.TEEN;
-        } else if (stage == Stage.TEEN && ageMinutes >= 2880) {
-            stage = Stage.ADULT;
-        }
-    }
-
-    /* ===== DEBUG ===== */
-
-    public void status() {
-        System.out.println("==== STATUS ====");
-        System.out.println("Stage        : " + stage);
-        System.out.println("Age (min)    : " + ageMinutes);
-        System.out.println("Hunger       : " + hunger);
-        System.out.println("Happiness    : " + happiness);
-        System.out.println("Discipline   : " + discipline);
-        System.out.println("CareMistakes : " + careMistakes);
-        System.out.println("Poop         : " + poopCount);
-        System.out.println("Sick         : " + isSick);
-        System.out.println("================");
-    }
-
-    /* ===== MAIN ===== */
-
-    public static void main(String[] args) throws InterruptedException {
-        TamagotchiV1 tama = new TamagotchiV1();
-
-        while (tama.stage != Stage.DEAD) {
-            tama.tick();
-            tama.status();
-
-            // Simulation automatique
-            if (tama.hunger < 2) tama.feedMeal();
-            if (tama.happiness < 2) tama.playGame();
-            if (tama.poopCount >= 2) tama.cleanPoop();
-            if (tama.isSick) tama.giveMedicine();
-
-            Thread.sleep(200); // 1 tick = 1 minute simulée
-        }
-    }
-}
+</body>
+</html>
