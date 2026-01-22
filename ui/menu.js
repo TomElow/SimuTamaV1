@@ -1,20 +1,10 @@
-// ui/menu.js — Menu & boutons A/B/C (V1)
+// ui/menu.js — V1 circular menu
 
 export class Menu {
   constructor() {
-    this.icons = [
-      "MEAL",
-      "SNACK",
-      "LIGHT",
-      "GAME",
-      "MEDICINE",
-      "TOILET",
-      "STATUS",
-      "DISCIPLINE"
-    ];
-
+    this.icons = ["MEAL", "GAME", "MEDICINE", "TOILET"];
     this.index = 0;
-    this.active = false;
+    this.active = true;
   }
 
   pressA() {
@@ -22,41 +12,19 @@ export class Menu {
   }
 
   pressB(tama) {
-    const icon = this.icons[this.index];
-
-    switch (icon) {
-      case "MEAL":
-        tama.feedMeal();
-        break;
-      case "SNACK":
-        tama.feedSnack();
-        break;
-      case "GAME":
-        tama.playGame();
-        break;
-      case "MEDICINE":
-        tama.giveMedicine();
-        break;
-      case "TOILET":
-        tama.cleanPoop();
-        break;
-      case "DISCIPLINE":
-        tama.disciplineAction();
-        break;
-      case "LIGHT":
-        tama.toggleLight();
-        break;
-      case "STATUS":
-        // affichage géré plus tard
-        break;
+    switch (this.current()) {
+      case "MEAL": tama.feedMeal(); break;
+      case "GAME": tama.playGame(); break;
+      case "MEDICINE": tama.giveMedicine(); break;
+      case "TOILET": tama.cleanPoop(); break;
     }
   }
 
   pressC() {
-    // pour l’instant : pas d’état secondaire
+    // V1: C cancels / closes submenus (noop for now)
   }
 
-  currentIcon() {
+  current() {
     return this.icons[this.index];
   }
 }
