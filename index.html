@@ -6,46 +6,45 @@
 <title>Simu Tamagotchi V1</title>
 
 <style>
-    body {
-        background: #e6e6e6;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        text-align: center;
-        padding: 20px;
-    }
+body {
+    background: #e6e6e6;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    text-align: center;
+    padding: 20px;
+}
 
-    h1 {
-        margin-bottom: 10px;
-    }
+h1 {
+    margin-bottom: 15px;
+}
 
-    #screen {
-        width: 320px;
-        height: 160px;
-        background: #cfd8c3;
-        border: 6px solid #333;
-        margin: 20px auto;
-        image-rendering: pixelated;
-    }
+/* Tamagotchi LCD frame */
+#frame {
+    display: inline-block;
+    padding: 14px;
+    background: #333;
+    border-radius: 6px;
+}
 
-    .buttons {
-        margin-top: 15px;
-    }
+#screen {
+    background: #cfd8c3;
+    image-rendering: pixelated;
+}
 
-    button {
-        font-size: 16px;
-        padding: 10px 18px;
-        margin: 0 5px;
-    }
+/* Buttons A B C */
+.buttons {
+    margin-top: 25px;
+}
 
-    #debug {
-        text-align: left;
-        max-width: 320px;
-        margin: 20px auto;
-        background: #fff;
-        padding: 10px;
-        font-family: monospace;
-        font-size: 14px;
-        border: 1px solid #ccc;
-    }
+.buttons button {
+    font-size: 18px;
+    width: 60px;
+    height: 40px;
+    margin: 0 8px;
+    border-radius: 20px;
+    border: none;
+    background: #ddd;
+    font-weight: bold;
+}
 </style>
 </head>
 
@@ -53,46 +52,68 @@
 
 <h1>Simu Tamagotchi V1</h1>
 
-<!-- LCD PLACEHOLDER -->
-<canvas id="screen" width="32" height="16"></canvas>
-
-<!-- TEMP BUTTONS (DEBUG ONLY) -->
-<div class="buttons">
-    <button onclick="tick(1)">+1 min</button>
-    <button onclick="tick(30)">+30 min</button>
-    <button onclick="feed()">Feed</button>
-    <button onclick="play()">Play</button>
+<!-- LCD -->
+<div id="frame">
+    <canvas id="screen" width="32" height="16"></canvas>
 </div>
 
-<!-- DEBUG OUTPUT -->
-<pre id="debug">Loading...</pre>
+<!-- Buttons -->
+<div class="buttons">
+    <button onclick="pressA()">A</button>
+    <button onclick="pressB()">B</button>
+    <button onclick="pressC()">C</button>
+</div>
 
 <script type="module">
 import { TamaV1 } from "./core/tama-core.js";
 import { LCD } from "./ui/lcd.js";
 import { SPRITES } from "./ui/sprites-v1.js";
+import { Menu } from "./ui/menu.js";
 
+/* Init core & UI */
 const tama = new TamaV1(0);
 const lcd = new LCD("screen", 10);
+const menu = new Menu();
 
+/* Render */
 function render() {
-  lcd.clear();
+    lcd.clear();
 
-  if (tama.stage === "EGG") {
-    lcd.sprite(14, 6, SPRITES.EGG);
-  } else if (tama.stage === "BABY") {
-    lcd.sprite(14, 6, SPRITES.BABY);
-  }
-
-  document.getElementById("debug").textContent =
-    JSON.stringify(tama.snapshot(), null, 2);
+    /* Draw Tamagotchi */
+    if (tama.stage === "EGG") {
+        lcd.sprite(14, 6, SPRITES.EGG);
+    } else if (tama.stage === "BABY") {
+        lcd.sprite(14, 6, SPRITES.BABY);
+    } else if (tama.stage === "CHILD") {
+        lcd.sprite(14, 6, SPRITES.BABY); // placeholder
+    }
 }
 
-window.tick = (m) => { tama.tick(m); render(); };
-window.feed = () => { tama.feedMeal(); render(); };
-window.play = () => { tama.playGame(); render(); };
+/* Button bindings */
+window.pressA = () => {
+    menu.pressA();
+    render();
+};
 
+window.pressB = () => {
+    menu.pressB(tama);
+    render();
+};
+
+window.pressC = () => {
+    menu.pressC();
+    render();
+};
+
+/* Real-time clock (1 min = 1 tick) */
+setInterval(() => {
+    tama.tick(1);
+    render();
+}, 60000);
+
+/* First draw */
 render();
 </script>
+
 </body>
 </html>
